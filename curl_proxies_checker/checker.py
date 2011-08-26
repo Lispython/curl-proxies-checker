@@ -437,7 +437,9 @@ if __name__ == '__main__':
 
     from optparse import OptionParser
     usage = "%prog [options] ip:port ip:port ..."
+
     parser = OptionParser(usage)
+
     parser.add_option("-f", "--file", dest="filename",
                       help="proxies file", metavar="FILE")
     parser.add_option("-t", "--timeout", dest="timeout",

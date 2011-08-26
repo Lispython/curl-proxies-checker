@@ -70,30 +70,3 @@ class GeventChecker(TypesCheckerBase):
             return [k for k, v in self._types.items() if v is True]
         return dict([(k, v if v else False) for k, v  in self._types.items()])
 
-
-class GeventPoolChecker(object):
-    """Check many proxies in gevent.Pool
-    """
-
-    def __init__(self, proxies, pool_size=20, time_out = None, user_agent = None, tester = None):
-        """GegentPoolChecker init
-
-        Arguments:
-        - `proxies`:
-        - `time_out`:
-        - `user_agent`:
-        - `tester`:
-        """
-        self._proxies = proxies
-        self._time_out = time_out
-        self._user_agent = user_agent
-        self._tester = tester
-        self._pool = gevent.Pool(pool_size)
-
-    def check(self):
-        """Check proxies list
-        """
-        for proxy in self._proxies:
-            pool.spawn(job, '%s.com' % x)
-        pool.join()
-
