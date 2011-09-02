@@ -13,11 +13,16 @@ import json
 import re
 import sys
 import uuid
-import pycurl
+
 import threading
 from logging import getLogger
 from random import choice
 
+try:
+    from geventcurl import pycurl
+except Exception, e:
+    print(e)
+    import pycurl
 try:
     import cStringIO as StringIO
 except ImportError:
