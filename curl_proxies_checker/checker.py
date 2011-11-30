@@ -38,8 +38,9 @@ from user_agents import USER_AGENTS
 
 __version__ = (0, 0, 2)
 __author__ = "Alexandr Lispython ( http://obout.ru )"
-__all__ = ('BaseChecker', 'HttpChecker', 'Socks4Checker', 'Socks5Checker',
-           'ImplementationError', 'USER_AGENTS', 'PROXIES_TYPES_MAP', 'get_checker', 'get_version')
+__all__ = ('BaseChecker', 'HttpChecker', 'Socks4Checker', 'Socks5Checker', 'SerialTypesChecker',
+            'TypeCheckerBase', 'ThreadsTypesChecker', 'ImplementationError',
+           'USER_AGENTS', 'PROXIES_TYPES_MAP', 'get_checker', 'get_version')
 
 def get_version():
     return ".".join(map(str, __version__))
@@ -309,7 +310,7 @@ class Socks5Checker(BaseChecker):
 
 
 class TypesCheckerBase(object):
-    """Base clas for parallel checker
+    """Base class for parallel checker
     """
 
     def __init__(self, proxy_addr, time_out=None, user_agent=None, tester=None):
@@ -341,12 +342,39 @@ class TypesCheckerBase(object):
         raise ImplementationError
 
 
-class TypesChecker(TypesCheckerBase):
+class SerialTypesChecker(TypesCheckerBase):
+    """Check proxies with serial requests
+    """
+    def __init__(self, proxy_addr, time_out=None, user_agent=None,
+                 tester=None, *args, **kwargs):
+        super(SerialTypesChecker, self).__init__(proxy_addr, time_out, user_agent,
+                                           tester, *args, **kwargs)
+
+    def get_types(self, is_list=False):
+        """Return dictionary or list (if is_list=True) of supporting proxy types.
+        - `is_list`: bool
+        """
+        for proxy_type in self._types.keys():
+            checker = get_checker(proxy_type)
+            try:
+                self._types[proxy_type] = checker(self._proxy_addr, time_out=self._time_out,
+                                              user_agent=self._user_agent,
+                                              tester=self._tester).check()
+            except Exception, e:
+                logger.warn("%r | %s" % (self, e))
+                continue
+
+        if is_list:
+            return [k for k, v in self._types.items() if v is True]
+        return dict([(k, v if v else False) for k, v  in self._types.items()])
+
+
+class ThreadsTypesChecker(TypesCheckerBase):
     """Parallel check types by threading module
     """
     def __init__(self, proxy_addr, time_out=None, user_agent=None,
                  tester=None, *args, **kwargs):
-        super(TypesChecker, self).__init__(proxy_addr, time_out, user_agent,
+        super(ThreadsTypesChecker, self).__init__(proxy_addr, time_out, user_agent,
                                            tester, *args, **kwargs)
         self._threads = []
 
