@@ -21,7 +21,7 @@ except:
 
 from setuptools import Command, setup
 
-__version__ = (0, 0, 1)
+__version__ = (0, 0, 2)
 
 
 try:
@@ -86,6 +86,9 @@ setup(
         'pycurl'
         ],
     license="BSD",
+    entry_points=dict(
+        console_scripts=['proxies_checker=curl_proxies_checker.console:main']
+        ),
     #test_suite="nose.collector",
     classifiers=[
         "Environment :: Web Environment",

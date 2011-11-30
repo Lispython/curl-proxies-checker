@@ -1,13 +1,25 @@
 all: clean-pyc test
 
 test:
-	../venv/bin/python runtests.py
+	. ../venv/bin/activate
+	python setup.py nosetests --stop --tests tests.py
+
+
+coverage:
+	. ../venv/bin/activate
+	python setup.py nosetests  --with-coverage --cover-package=human_curl --cover-html --cover-html-dir=coverage_out coverage
+
 
 shell:
 	../venv/bin/ipython
 
 audit:
-	../venv/bin/python audit
+	. ../venv/bin/activate
+	python setup.py autdit
+
+release:
+	. ../venv/bin/activate
+	python setup.py sdist upload
 
 clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +

@@ -9,20 +9,25 @@ Checker classes
 :copyright: (c) 2011 by Alexandr Lispython (alex@obout.ru).
 :license: BSD, see LICENSE for more details.
 """
+
 import json
 import re
 import sys
 import uuid
 
 import threading
-from logging import getLogger
+import multiprocessing
+import logging
+import traceback
 from random import choice
 
-try:
-    from geventcurl import pycurl
-except Exception, e:
-    print(e)
-    import pycurl
+## try:
+##     from geventcurl import pycurl
+##     print("")
+## except Exception, e:
+##     print(e)
+import pycurl
+
 try:
     import cStringIO as StringIO
 except ImportError:
@@ -31,13 +36,15 @@ except ImportError:
 from user_agents import USER_AGENTS
 
 
-__version__ = (0, 0, 1)
+__version__ = (0, 0, 2)
 __author__ = "Alexandr Lispython ( http://obout.ru )"
 __all__ = ('BaseChecker', 'HttpChecker', 'Socks4Checker', 'Socks5Checker',
-           'ImplementationError', 'USER_AGENTS', 'PROXIES_TYPES_MAP', 'get_checker')
+           'ImplementationError', 'USER_AGENTS', 'PROXIES_TYPES_MAP', 'get_checker', 'get_version')
 
+def get_version():
+    return ".".join(map(str, __version__))
 
-logger = getLogger('curl_proxies_checker')
+logger = logging.getLogger('curl_proxies_checker')
 
 SOCKS_VER4 = pycurl.PROXYTYPE_SOCKS4
 SOCKS_VER5 = pycurl.PROXYTYPE_SOCKS5
@@ -223,6 +230,7 @@ class BaseChecker(object):
         opener.setopt(pycurl.FOLLOWLOCATION, 0)
         opener.setopt(pycurl.CONNECTTIMEOUT, self._time_out)
         opener.setopt(pycurl.TIMEOUT, self._time_out)
+        opener.setopt(pycurl.NOSIGNAL, 1)
         opener.perform()
         opener.close()
 
@@ -338,7 +346,7 @@ class TypesChecker(TypesCheckerBase):
     """
     def __init__(self, proxy_addr, time_out=None, user_agent=None,
                  tester=None, *args, **kwargs):
-        super(TypesChecker, self).__inti__(proxy_addr, time_out, user_agent,
+        super(TypesChecker, self).__init__(proxy_addr, time_out, user_agent,
                                            tester, *args, **kwargs)
         self._threads = []
 
@@ -385,6 +393,7 @@ class TypesCheckerThread(threading.Thread):
         super(TypesCheckerThread, self).__init__(*args,  **kwargs)
         self._parent = parent
         self._proxy_type = proxy_type
+        self._proxy_addr = proxy_addr
         self._tester = tester
         self._time_out = time_out
         self._types_blocker = threading.Lock()
@@ -403,8 +412,104 @@ class TypesCheckerThread(threading.Thread):
                                                       tester=self._tester).check()
         except Exception, e:
             logger.warn("%r | %s" % (self, e))
+            traceback.print_exc(file=sys.stdout)
         finally:
             self._types_blocker.release()
+
+
+class TypesCheckerProcessesManager(TypesCheckerBase):
+    """Check proxies with multiprocessing
+    """
+    def __init__(self, input_queue, output_queue, time_out=None, user_agent=None,
+                 tester=None,  poll_limit=4, *args, **kwargs):
+        self._tester = tester
+        self._time_out = time_out or DEFAULT_TIME_OUT
+        self._user_agent = user_agent
+        self._types = {
+            'socks5': None,
+            'socks4': None,
+            'GET': None,
+            'CONNECT': None}
+        self._processes_poll = []
+        self._poll_limit = poll_limit
+
+
+    def check_all(self):
+        """Return dictionary or list (if is_list=True) of supporting proxy types.
+        - `is_list`: bool
+        """
+        for x in xrange(self._poll_limit):
+            try:
+                t = TypesCheckerProcess(self._input_queue, self._output_queue, self._time_out,
+                                        self._user_agent, self._tester)
+                self._processes_poll.append(t)
+            except Exception, e:
+                logger.warn("%r | %s" % (self, e))
+
+        # start all threads
+        for t in self._processes_poll:
+            t.start()
+
+        # wait until threads done work
+        for t in self._processes_poll:
+            t.join()
+
+
+class TypesCheckerProcess(multiprocessing.Process):
+    """Check proxy from types_queue for given type
+    """
+    def __init__(self, input_queue, output_queue, proxy_addr, time_out=None,
+                 user_agent=None, tester=None, *args, **kwargs):
+        """TypesCheclerThread init
+
+        Arguments
+        - `input_queue`:
+        - `output_queue`:
+        - `proxy_addr`:
+        - `time_out`:
+        - `user_agent`:
+        - `tester`:
+        """
+        super(TypesCheckerProcess, self).__init__(*args,  **kwargs)
+        self._tester = tester
+        self._time_out = time_out
+        self._input_queue = input_queue
+        self._output_queue = output_queue
+        self._types = {
+            'socks5': None,
+            'socks4': None,
+            'GET': None,
+            'CONNECT': None}
+
+
+    def __repr__(self):
+        return u"<%s: > " % self.__class__.__name__
+
+    def run(self):
+        """Starts when self.start() execute
+        """
+        logger.debug("%r start work" % self)
+        print("%r start work" % self)
+        while True:
+            proxy_addr = self._input_queue.get(True)
+
+            if proxy_addr is 0:
+                break
+
+            for proxy_type in PROXY_TYPES:
+                checker = get_checker(self._proxy_type)
+                try:
+                    self._types[proxy_type] = checker(proxy_addr=proxy_addr,
+                                                      time_out=self._time_out,
+                                                      tester=self._tester).check()
+                except Exception, e:
+                    print(e)
+                    logger.warn("%r | %s" % (self, e))
+                    traceback.print_exc(file=sys.stderr)
+                    continue
+            self._input_queue.task_done()
+            self._output_queue.put(self._types)
+        logger.debug("%r finished work" % self)
 
 
 def get_checker(proxy_type):
@@ -423,62 +528,3 @@ def get_checker(proxy_type):
         return Socks5Checker
     else:
         raise RuntimeError("Unknown proxy type")
-
-
-if __name__ == '__main__':
-    import os
-    import time
-    t = time.time()
-    print("Proxies checker v%s start at %s" % (".".join(map(str, __version__)), time.ctime(t)))
-
-    gevent_work = True
-    try:
-        from gevent_checker import GeventChecker as TypesCheckerClass
-    except ImportError, e:
-        TypesCheckerClass = TypesChecker
-        gevent_work = False
-
-    print("Use %s as types checker" % TypesCheckerClass.__name__)
-
-    from optparse import OptionParser
-    usage = "%prog [options] ip:port ip:port ..."
-
-    parser = OptionParser(usage)
-
-    parser.add_option("-f", "--file", dest="filename",
-                      help="proxies file", metavar="FILE")
-    parser.add_option("-t", "--timeout", dest="timeout",
-                      help="connection timeout", type="int", metavar="TIMEOUT",
-                      default=20)
-
-    (options, args) = parser.parse_args()
-
-    addreses = []
-    if args > 0:
-        for arg in args[:]:
-            try:
-                ip, port = [x.strip() for x in arg.split(":")]
-                addreses.append((ip, int(port)))
-            except Exception, e:
-                print(e)
-                continue
-
-    if options.filename and os.path.exists(options.filename):
-        for line in open(options.filename):
-            try:
-                ip, port = [x.strip() for x in line.split(":")]
-                addreses.append((ip, int(port)))
-            except Exception, e:
-                print(e)
-                continue
-
-    results = dict()
-    try:
-        for proxy in addreses:
-            results[proxy] = TypesCheckerClass(proxy, time_out=options.timeout).get_types(is_list=True)
-            print("%s:%s ---> %s" % (proxy[0], proxy[1], results[proxy]))
-    except KeyboardInterrupt, e:
-        print("Checked %s proxies for %s sec" % (len(results), time.time()-t))
-        sys.exit(1)
-
-    print("Checked %s proxies for %s sec at %s " % (len(results), (time.time()-t) * 10, time.ctime()))
