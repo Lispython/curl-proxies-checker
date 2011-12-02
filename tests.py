@@ -23,7 +23,9 @@ import logging
 from urlparse import urljoin
 import unittest
 
-from curl_proxies_checker.checker import SerialTypesChecker, TypesCheckerBase
+from curl_proxies_checker.checker import SerialTypesChecker, TypesCheckerBase, PROXIES_TYPES_MAP, get_checker
+from curl_proxies_checker.geventcurl import pycurl as gevent_pycurl
+
 
 logger = logging.getLogger("curl_proxies_checker")
 
@@ -36,7 +38,7 @@ class CheckerTestCase(unittest.TestCase):
                 if line == "\n": continue
                 try:
                     ip, port = line.split(":")
-                    self.proxies.append((ip, port))
+                    self.proxies.append((ip, int(port)))
                 except Exception, e:
                     pass
 
@@ -49,6 +51,18 @@ class CheckerTestCase(unittest.TestCase):
     def test_serial_types_checker(self):
         checker = SerialTypesChecker(self.proxies[0])
         self.assertEquals(len(checker.get_types()), 4)
+
+    def test_checker_opener(self):
+        results = {}
+        for proxy_type in PROXIES_TYPES_MAP.keys():
+            checker = get_checker(proxy_type)
+            checker_instance = checker(self.proxies[0], opener_base_class=gevent_pycurl.Curl)
+            self.assertEquals(checker_instance._opener_base_class, gevent_pycurl.Curl)
+            results[proxy_type] = checker_instance.check()
+            print(gevent_pycurl.Curl)
+            logger.debug(gevent_pycurl.Curl)
+            self.assertTrue(isinstance(checker_instance._opener, gevent_pycurl.Curl))
+            print(results[proxy_type])
 
 
 def suite():

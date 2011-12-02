@@ -40,7 +40,7 @@ __version__ = (0, 0, 2)
 __author__ = "Alexandr Lispython ( http://obout.ru )"
 __all__ = ('BaseChecker', 'HttpChecker', 'Socks4Checker', 'Socks5Checker', 'SerialTypesChecker',
             'TypeCheckerBase', 'ThreadsTypesChecker', 'ImplementationError',
-           'USER_AGENTS', 'PROXIES_TYPES_MAP', 'get_checker', 'get_version')
+           'USER_AGENTS', 'PROXIES_TYPES_MAP', 'DEFAULT_TIME_OUT', 'get_checker', 'get_version')
 
 def get_version():
     return ".".join(map(str, __version__))
@@ -187,7 +187,7 @@ class BaseChecker(object):
     """
 
     def __init__(self, proxy_addr, time_out=None,
-                 user_agent=None, tester=None):
+                 user_agent=None, tester=None, opener_base_class=pycurl.Curl):
         """
 
         Arguments:
@@ -207,6 +207,8 @@ class BaseChecker(object):
         self._tester = tester(self._proxy_addr) if tester \
                        else HWRTTNTester(self._proxy_addr)
 
+        self._opener_base_class = opener_base_class
+
     def __repr__(self):
         return "<%s: %s:%s [ %s ] [ %s ]>" % (self.__class__.__name__,
                                               self._proxy_addr[0], self._proxy_addr[1],
@@ -215,7 +217,7 @@ class BaseChecker(object):
     def get_opener(self):
         """Construct curl opener
         """
-        opener = pycurl.Curl()
+        opener = self._opener_base_class()
         output = StringIO.StringIO()
         opener.setopt(pycurl.URL, str(self._tester.url))
         opener.setopt(pycurl.WRITEFUNCTION, output.write)
