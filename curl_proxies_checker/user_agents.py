@@ -9,8 +9,9 @@ List of user agents
 :copyright: (c) 2011 by Alexandr Lispython (alex@obout.ru).
 :license: BSD, see LICENSE for more details.
 """
+from random import choice
 
-__all__ = ("USER_AGENTS", )
+__all__ = ("USER_AGENTS", "get_random_user_agent")
 
 USER_AGENTS = """Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)
 Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322)
@@ -49,3 +50,7 @@ Opera/9.23 (Windows NT 5.1; U; en)
 Opera/9.50 (Windows NT 5.1; U; en)
 Opera/9.50 (Windows NT 6.0; U; en)
 Opera/9.60 (Windows NT 5.1; U; en) Presto/2.1.1""".splitlines()
+
+
+def get_random_user_agent():
+    return choice(USER_AGENTS)
