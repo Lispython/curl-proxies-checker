@@ -234,11 +234,12 @@ class BaseChecker(object):
         opener.setopt(pycurl.CONNECTTIMEOUT, self._time_out)
         opener.setopt(pycurl.TIMEOUT, self._time_out)
         opener.setopt(pycurl.NOSIGNAL, 1)
-        opener.perform()
-        opener.close()
 
         self._opener = opener
         self._output = output
+        opener.perform()
+        opener.close()
+
         return opener, output
 
     def test_result(self):
