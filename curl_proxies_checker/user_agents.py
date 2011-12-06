@@ -51,7 +51,7 @@ Opera/9.50 (Windows NT 5.1; U; en)
 Opera/9.50 (Windows NT 6.0; U; en)
 Opera/9.60 (Windows NT 5.1; U; en) Presto/2.1.1""".splitlines()
 
-DEFAULT_USER_AGENT = USER_AGENT[0]
+DEFAULT_USER_AGENT = USER_AGENTS[0]
 
 def get_random_user_agent():
     return choice(USER_AGENTS)
