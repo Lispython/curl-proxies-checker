@@ -26,6 +26,7 @@ from random import choice
 ##     print("")
 ## except Exception, e:
 ##     print(e)
+
 import pycurl
 
 try:
@@ -175,7 +176,7 @@ class HTTPBinTester(BaseTester):
                 ##        self._proxy_ip in json_data.get('X-Forwarded-For'):
                     return True
             except Exception, e:
-                logger.warn(" %s | %s " % (self, e))
+                logger.warn("%r | %s " % (self, e))
                 return False
             return False
         else:
@@ -237,8 +238,10 @@ class BaseChecker(object):
 
         self._opener = opener
         self._output = output
+
+        logger.debug("%r | opener created" % self)
+
         opener.perform()
-        opener.close()
 
         return opener, output
 
@@ -257,7 +260,9 @@ class BaseChecker(object):
         try:
             self.get_opener()
             self.test_result()
+            logger.debug("%r | output tested" % self)
             self._output.close()
+            self._opener.close()
         except KeyboardInterrupt:
             sys.exit(1)
         except Exception, e:
@@ -283,8 +288,6 @@ class HttpsChecker(BaseChecker):
     """
 
     def __init__(self, *args, **kwargs):
-        """
-        """
         super(HttpsChecker, self).__init__(*args, **kwargs)
         self._proxy_type = pycurl.PROXYTYPE_HTTP
         self._use_proxy_ssl = True
@@ -295,8 +298,6 @@ class Socks4Checker(BaseChecker):
     """
 
     def __init__(self, *args, **kwargs):
-        """
-        """
         super(Socks4Checker, self).__init__(*args, **kwargs)
         self._proxy_type = pycurl.PROXYTYPE_SOCKS4
 
@@ -306,8 +307,6 @@ class Socks5Checker(BaseChecker):
     """
 
     def __init__(self, *args, **kwargs):
-        """
-        """
         super(Socks5Checker, self).__init__(*args, **kwargs)
         self._proxy_type = pycurl.PROXYTYPE_SOCKS5
 
@@ -520,7 +519,6 @@ class TypesCheckerProcess(multiprocessing.Process):
         """Starts when self.start() execute
         """
         logger.debug("%r start work" % self)
-        print("%r start work" % self)
         while True:
             proxy_addr = self._input_queue.get(True)
 
