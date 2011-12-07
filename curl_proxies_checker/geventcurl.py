@@ -100,6 +100,7 @@ class GeventCurl(object):
                 ret, num_handles = self._obj.socket_action(pycurl.SOCKET_TIMEOUT, 0)
             except pycurl.error, e:
                 ret = e.args[0]
+                logger.warning("%s" % e)
             if ret != pycurl.E_CALL_MULTI_PERFORM:
                 break
         self._finish_pending_requests()
@@ -132,6 +133,7 @@ class GeventCurl(object):
                 ret, num_handles = self._socket_action(fd, action)
             except pycurl.error, e:
                 ret = e.args[0]
+                logger.warning("%s" % e)
             if ret != pycurl.E_CALL_MULTI_PERFORM:
                 break
         self._finish_pending_requests()
