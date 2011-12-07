@@ -218,6 +218,7 @@ class BaseChecker(object):
     def get_opener(self):
         """Construct curl opener
         """
+        logger.debug("%r | start creating opener")
         opener = self._opener_base_class()
         output = StringIO.StringIO()
         opener.setopt(pycurl.URL, str(self._tester.url))
