@@ -80,7 +80,7 @@ setup(
     long_description=readme_content,
     author="Alex",
     author_email="alex@obout.ru",
-    url="https://github.com/lispython/curl_proxies_checker",
+    url="https://github.com/lispython/curl-proxies-checker",
     packages=["curl_proxies_checker"],
     install_requires=[
         'pycurl'

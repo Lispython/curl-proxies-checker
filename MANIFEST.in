@@ -1,5 +1,6 @@
-include *.txt *.md *.rst Makefile
+include *.txt *.md *.rst Makefile *.py
 recursive-include docs *.txt *.py *.rst *.md
+recursive-include curl_proxies_checker *.py
 recursive-include docs *
 ecursive-exclude docs *.pyc
 recursive-exclude docs *.pyo
