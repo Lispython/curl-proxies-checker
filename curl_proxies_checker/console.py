@@ -83,7 +83,7 @@ def main():
 
     for proxy in addresses:
         try:
-            proxy_result = TypesChecker(proxy, options.timeout).get_types(True)
+            proxy_result = SerialTypesChecker(proxy, options.timeout).get_types(True)
             print("%s:%s ---> %s" % (proxy[0], proxy[1], proxy_result))
         except KeyboardInterrupt:
             print_results()
