@@ -15,7 +15,7 @@ import time
 import os
 import sys
 
-from checker import TypesChecker, get_version
+from checker import SerialTypesChecker, get_version
 
 logger = logging.getLogger('curl_proxies_checker')
 
@@ -30,7 +30,7 @@ def main():
     t = time.time()
     print("Proxies checker v%s start at %s" % (get_version(), time.ctime(t)))
 
-    print("Use %s as types checker" % TypesChecker.__name__)
+    print("Use %s as types checker" % SerialTypesChecker.__name__)
 
     from optparse import OptionParser
     usage = "%prog [options] ip:port ip:port ..."

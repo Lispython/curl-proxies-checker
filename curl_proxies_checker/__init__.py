@@ -13,13 +13,13 @@ from .user_agents import USER_AGENTS
 from .checker import (BaseChecker, HttpChecker, HttpsChecker,
                       Socks4Checker, Socks5Checker, BaseTester,
                       HWRTTNTester, HTTPBinTester, ImplementationError,
-                      get_checker, PROXIES_TYPES_MAP)
+                      get_checker, PROXIES_TYPES_MAP, TypesChecker)
 
 
 __version__ = (0, 0, 3)
 __author__ = "Alexandr ( http://obout.ru )"
 __all__ = ('BaseChecker', 'HttpChecker', 'Socks4Checker', 'Socks5Checker',
            'ImplementationError', 'USER_AGENTS', 'PROXIES_TYPES_MAP', 'get_checker',
-           'HWRTTNTester', 'HTTPBinTester', 'BaseTester')
+           'HWRTTNTester', 'HTTPBinTester', 'BaseTester', 'TypesChecker')
 
 

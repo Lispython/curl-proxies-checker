@@ -40,7 +40,7 @@ from user_agents import USER_AGENTS
 __version__ = (0, 0, 2)
 __author__ = "Alexandr Lispython ( http://obout.ru )"
 __all__ = ('BaseChecker', 'HttpChecker', 'Socks4Checker', 'Socks5Checker', 'SerialTypesChecker',
-            'TypeCheckerBase', 'ThreadsTypesChecker', 'ImplementationError',
+            'TypeCheckerBase', 'ThreadsTypesChecker', 'ImplementationError', 'TypesChecker',
            'USER_AGENTS', 'PROXIES_TYPES_MAP', 'DEFAULT_TIME_OUT', 'get_checker', 'get_version')
 
 def get_version():
