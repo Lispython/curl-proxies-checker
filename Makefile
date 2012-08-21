@@ -7,7 +7,7 @@ test:
 
 coverage:
 	. ../venv/bin/activate
-	python setup.py nosetests  --with-coverage --cover-package=human_curl --cover-html --cover-html-dir=coverage_out coverage
+	python setup.py nosetests  --with-coverage --cover-package=curl_proxies_checker --cover-html --cover-html-dir=coverage_out coverage
 
 
 shell:
@@ -28,7 +28,3 @@ clean-pyc:
 
 find-print:
 	grep -r --include=*.py --exclude-dir=venv --exclude=fabfile* --exclude=tests.py --exclude-dir=tests --exclude-dir=commands 'print' ./
-
-mongo-start:
-	rm -rf /var/lib/mongodb/mongod.lock
-	sudo mongod --fork -f /etc/mongodb.conf --auth --logpath /var/log/mongodb/mongodb.log --logappend
