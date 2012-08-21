@@ -16,7 +16,7 @@ from .checker import (BaseChecker, HttpChecker, HttpsChecker,
                       get_checker, PROXIES_TYPES_MAP, SerialTypesChecker)
 
 
-__version__ = (0, 0, 5)
+__version__ = (0, 0, 6)
 __author__ = "Alexandr ( http://obout.ru )"
 __all__ = ('BaseChecker', 'HttpChecker', 'Socks4Checker', 'Socks5Checker',
            'ImplementationError', 'USER_AGENTS', 'PROXIES_TYPES_MAP', 'get_checker',
